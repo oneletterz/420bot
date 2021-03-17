@@ -34,6 +34,8 @@ export default class GroupmeHelper {
       },
       body: JSON.stringify(body),
     });
+    console.log(res);
+    console.log(res.body);
     return res.json();
   }
 
