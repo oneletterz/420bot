@@ -2,13 +2,14 @@
   "name": "420bot",
   "version": "0.0.1",
   "description": "Groupme Bot",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "lint": "eslint src/",
     "build": "tsc",
-    "start": "node index.js"
+    "start": "node dist/index.js"
   },
   "dependencies": {
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "node-fetch": "^2.6.1",
     "node-schedule": "2.0.x",
