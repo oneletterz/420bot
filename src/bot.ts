@@ -52,74 +52,70 @@ export default class Bot {
   async respond(message: MessageResponse, response: Response) {
     if (message == null) return response.end();
     
-    const name = message.name.replace(/'/g, '');
-    const userID = message.user_id;
-
-    const beerRegex = /[+-]\dbeer/i;
-    const beerRegex2 = /[+-]\d\dbeer/i;
-
-    // Check request against regexes
-    if (message.sender_type === 'user' && message.text) {
-      if (/(.*)@everyone(.*)/i.test(message.text)) {
-        this.atEveryone(message.text);
-      } else if (/smoke weed/i.test(message.text)) {
-        this.gh.postMessage('everyday');
-      } else if (/when/i.test(message.text) && /\?/.test(message.text)) {
-        this.gh.postMessage('4:20');
-      } else if ((/alcoholi/i.test(message.text) || (false && /total/i.test(message.text))) && /\?/.test(message.text)) {
-        await this.postTotals();
-      } else if (beerRegex.test(message.text) || beerRegex2.test(message.text)) {
-        // Assign count and time to variables
-        let strPos;
-        let numBeers;
-
-        if (beerRegex.test(message.text)) {
-          strPos = message.text.search(beerRegex);
-          numBeers = parseInt(message.text.charAt(strPos + 1), 10);
-        } else {
-          strPos = message.text.search(beerRegex2);
-          numBeers = parseInt(message.text.substring(strPos + 1, strPos + 3), 10);
-        }
-
-        const currTime = new Date().toLocaleString();
-        const addBeer = message.text.charAt(strPos) === '+';
-        // Checks if positive or negative & negate if subtracting
-        if (addBeer) {
-          console.log(`Adding ${numBeers}beers for user_id: ${userID
-          }, created_at: ${message.created_at}, currTime: ${currTime}`);
-        } else {
-          console.log(`Subtracting ${numBeers}beers for user_id: ${userID
-          }, created_at: ${message.created_at}, currTime: ${currTime}`);
-          numBeers *= -1;
-        }
-
-        // Call functions to update induvidual counts and total counts
-        await this.addBeerUpdate(userID, numBeers, currTime);
-        await this.updateTotals(userID, name, numBeers);
-      }
+    if (message.sender_type != 'user' || !message.text) {
       response.writeHead(200);
       response.end();
     }
+
+    const userName = message.name.replace(/'/g, '');
+    const userID = message.user_id;
+    const text = message.text;
+
+    if (/(.*)@everyone(.*)/i.test(message.text)) {
+      this.gh.likeMessage(this.groupID, message.id)
+      this.atEveryone(message.text);
+    }
+
+    if (/smoke weed/i.test(message.text)) {
+      this.gh.likeMessage(this.groupID, message.id)
+      this.gh.postMessage('everyday');
+    }
+
+    if (/when.*\?/i.test(message.text)) {
+      this.gh.likeMessage(this.groupID, message.id)
+      this.gh.postMessage('4:20');
+    }
+
+    if (/alcoholi.*\?/i.test(message.text)) {
+      this.gh.likeMessage(this.groupID, message.id)
+      this.postTotals();
+    }
+
+    let beerModifier = 0;
+    const beerMatch = /([+-])\s*(\d+)\s*beer/i.exec(text);
+    if (beerMatch && beerMatch.length >= 2) {
+      const beerAdd = beerMatch[1] === '+';
+      beerModifier = parseInt(beerMatch[2], 10) * (beerAdd ? 1 : -1);
+    }
+    if (beerModifier !== 0) {
+      this.gh.likeMessage(this.groupID, message.id)
+      await this.addBeerUpdate(userID, userName, beerModifier);
+    }
+        
+    response.writeHead(200);
+    response.end();
   }
 
-  async addBeerUpdate(user_id: string, numBeers: number, time: string) {
+  async addBeerUpdate(userID: string, userName: string, beerModifier: number) {
+    console.log(`Adding ${beerModifier} beers to ${userName}'s total.`)
     const client = await this.pg.connect();
     try {
       // Create a new table for the user if it doesn't already exist
-      const createTableCommand = `CREATE TABLE IF NOT EXISTS u${user_id} (date text, count int)`;
+      const createTableCommand = `CREATE TABLE IF NOT EXISTS u${userID} (date text, count int)`;
       await client.query(createTableCommand);
 
       // Add row with time and count value
-      const insertUpdateCommand = `INSERT INTO u${user_id} VALUES ('${time}', ${numBeers})`;
+      const insertUpdateCommand = `INSERT INTO u${userID} VALUES ('${Date.now().toLocaleString()}', ${beerModifier})`;
       await client.query(insertUpdateCommand);
     } catch (err) {
       console.error(err);
     } finally {
       client.release();
     }
+    await this.updateTotals(userID, userName, beerModifier);
   }
 
-  async updateTotals(user_id: string, userName: string, numBeers: number) {
+  async updateTotals(userID: string, userName: string, beerModifier: number) {
     let groupTotal;
     let userTotal;
     let goalReached = false;
@@ -144,45 +140,48 @@ export default class Bot {
       }
 
       // Update totals
-      const updateGroupTotal = `UPDATE totals SET count = count + ${numBeers} WHERE user_id = 'group'`;
+      const updateGroupTotal = `UPDATE totals SET count = count + ${beerModifier} WHERE user_id = 'group'`;
       await client.query(updateGroupTotal);
-      if (groupTotal < 420 && groupTotal + numBeers >= 420) { goalReached = true; }
-      groupTotal += numBeers;
+      if (groupTotal < 420 && groupTotal + beerModifier >= 420) { goalReached = true; }
+      groupTotal += beerModifier;
 
       // USER
       // Retrieve totals & insert row if it doesn't exist
-      const selectUserCommand = `SELECT name, count FROM totals WHERE user_id = '${user_id}'`;
+      const selectUserCommand = `SELECT name, count FROM totals WHERE user_id = '${userID}'`;
       result = await client.query(selectUserCommand);
 
       // Check if group row exists
       if (result.rows.length === 0) {
-        var insertRowCommand = `INSERT INTO totals VALUES ('${user_id}', '${userName}', 0)`;
+        var insertRowCommand = `INSERT INTO totals VALUES ('${userID}', '${userName}', 0)`;
         await client.query(insertRowCommand);
         userTotal = 0;
       } else {
         userTotal = result.rows[0].count;
       }
       // Update totals
-      const updateUserTotal = `UPDATE totals SET count = count + ${numBeers} WHERE user_id = '${user_id}'`;
+      const updateUserTotal = `UPDATE totals SET count = count + ${beerModifier} WHERE user_id = '${userID}'`;
       result = await client.query(updateUserTotal);
 
-      userTotal += numBeers;
+      userTotal += beerModifier;
       // Update name
-      const updateUserName = `UPDATE totals SET name = '${userName}' WHERE user_id = '${user_id}'`;
+      const updateUserName = `UPDATE totals SET name = '${userName}' WHERE user_id = '${userID}'`;
       await client.query(updateUserName);
       console.log(updateUserName);
 
       // Send an update message to the group chat
-      if (numBeers === 1) {
-        this.gh.postMessage(`1 beer added! ${userName}'s new count: ${userTotal} Group total: ${groupTotal}`);
-      } else if (numBeers < 1) {
-        this.gh.postMessage(`Subtracted ${Math.abs(numBeers)} beers. ${userName}'s new count: ${userTotal} Group total: ${groupTotal}`);
+      let updateMessage = '';
+      if (beerModifier >= 0) {
+        updateMessage = `${beerModifier} beer${beerModifier == 1 ? '' : 's'} added!`;
       } else {
-        this.gh.postMessage(`${numBeers} beers added! ${userName}'s new count: ${userTotal} Group total: ${groupTotal}`);
+        updateMessage = `Subtracted ${Math.abs(beerModifier)} beer${beerModifier == -1 ? '' : 's'}.`;
       }
-      if (goalReached) {
+      updateMessage = updateMessage + `${userName}'s new count: ${userTotal} Group total: ${groupTotal}`
+
+      this.gh.postMessage(updateMessage);
+
+      if (goalReached)
         this.gh.postMessage("Congratulations! Here's to another 420!");
-      }
+
     } catch (err) {
       console.error(err);
     } finally {

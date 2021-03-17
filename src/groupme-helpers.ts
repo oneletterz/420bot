@@ -37,6 +37,15 @@ export default class GroupmeHelper {
     });
   }
 
+  async likeMessage(conversationID: string, messageID: string) {
+    return fetch(`https://api.groupme.com/v3/messages/${conversationID}/${messageID}/like`, {
+      method: 'POST',
+      headers: {
+        'X-Access-Token': this.authToken
+      }
+    });
+  }
+
   async requestInfo(info: string) {
     console.log(`requesting ${info}`);
 

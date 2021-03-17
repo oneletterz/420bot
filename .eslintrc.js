@@ -12,6 +12,7 @@ export default {
     "no-plusplus": "off",
     "arrow-parens": "off",
     "lines-between-class-members": "off",
-    "@typescript-eslint/lines-between-class-members": "off"
+    "@typescript-eslint/lines-between-class-members": "off",
+    "semi": "error"
   }
 }
