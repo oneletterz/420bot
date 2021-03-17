@@ -27,7 +27,7 @@ export default class GroupmeHelper {
       attachments,
     };
 
-    const res = await fetch(`https://api.groupme.com/v3/bots/post`, {
+    return fetch(`https://api.groupme.com/v3/bots/post`, {
       method: 'POST',
       headers: {
         'X-Access-Token': this.authToken,
@@ -35,8 +35,6 @@ export default class GroupmeHelper {
       },
       body: JSON.stringify(body),
     });
-    console.log(res.body);
-    return res.json();
   }
 
   async requestInfo(info: string) {
