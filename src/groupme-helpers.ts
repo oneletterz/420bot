@@ -31,10 +31,10 @@ export default class GroupmeHelper {
       method: 'POST',
       headers: {
         'X-Access-Token': this.authToken,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(body),
     });
-    console.log(res);
     console.log(res.body);
     return res.json();
   }
