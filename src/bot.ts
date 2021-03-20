@@ -38,10 +38,6 @@ export default class Bot {
       this.gh.postMessage('Take a bong hit for the boyyyyys 😌🌿🥦⚗️🌳🍁🍃🔥🍀🌿🚬😌');
     });
 
-    schedule.scheduleJob('* * * * *', () => { // TEST
-      this.gh.postMessage('Take a bong hit for the boyyyyys 😌🌿🥦⚗️🌳🍁🍃🔥🍀🌿🚬😌');
-    });
-
     schedule.scheduleJob('4 16 * * *', () => {
       this.gh.postMessage('Happy 4:20! Now go to bed, you filthy animal.');
     });
