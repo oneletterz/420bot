@@ -12,3 +12,5 @@ interface MessageResponse {
   'attachments': Array<Object>,
   'sender_type': string
 }
+
+type Attachment = { loci: number[][], type: string, user_ids: string[] };

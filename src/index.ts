@@ -10,12 +10,15 @@ const authToken = process.env.TOKEN;
 const groupID = process.env.GROUP_ID;
 const botID = process.env.BOT_ID;
 
+const dadBotID = process.env.DAD_BOT_ID;
+const sonID = process.env.SON_ID;
+
 if (!databseURL) throw new Error('Missing DATABASE_URL');
 if (!authToken) throw new Error('Missing TOKEN');
 if (!groupID) throw new Error('Missing GROUP_ID');
 if (!botID) throw new Error('Missing BOT_ID');
 
-const bot = new Bot(databseURL, authToken, groupID, botID);
+const bot = new Bot(databseURL, authToken, groupID, botID, dadBotID, sonID);
 
 app.use(express.json());
 

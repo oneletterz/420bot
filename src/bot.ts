@@ -8,13 +8,20 @@ export default class Bot {
   groupID: string;
   botID: string;
 
+  dadBotID: string | undefined;
+  sonID: string | undefined;
+
   pg: Pool;
   gh: GroupmeHelper;
 
-  constructor(databaseURL: string, authToken: string, groupID: string, botID: string) {
+  constructor(databaseURL: string, authToken: string, groupID: string, botID: string,
+              dadBotID: string | undefined, sonID: string | undefined) {
     this.authToken = authToken;
     this.groupID = groupID;
     this.botID = botID;
+
+    this.dadBotID = dadBotID;
+    this.sonID = sonID;
 
     this.pg = new Pool({ connectionString: databaseURL });
     this.gh = new GroupmeHelper(authToken, groupID, botID);
@@ -26,10 +33,21 @@ export default class Bot {
     schedule.scheduleJob('20 16 * * *', () => {
       this.gh.postMessage('Happy 4:20!');
     });
+
+    schedule.scheduleJob('20 16 20 4 *', () => {
+      this.gh.postMessage('Take a bong hit for the boyyyyys 😌🌿🥦⚗️🌳🍁🍃🔥🍀🌿🚬😌');
+    });
+
+    schedule.scheduleJob('* * * * *', () => { // TEST
+      this.gh.postMessage('Take a bong hit for the boyyyyys 😌🌿🥦⚗️🌳🍁🍃🔥🍀🌿🚬😌');
+    });
+
+    schedule.scheduleJob('4 16 * * *', () => {
+      this.gh.postMessage('Happy 4:20! Now go to bed, you filthy animal.');
+    });
   }
 
   async atEveryone(text: string) {
-    type Attachment = { loci: number[][], type: string, user_ids: string[] };
     const attachments: Attachment[] = [{ loci: [], type: 'mentions', user_ids: [] }];
 
     // Add "mention" for each user
@@ -62,23 +80,28 @@ export default class Bot {
     const text = message.text;
 
     if (/(.*)@everyone(.*)/i.test(message.text)) {
-      this.gh.likeMessage(this.groupID, message.id)
+      this.gh.likeMessage(this.groupID, message.id);
       this.atEveryone(message.text);
     }
 
     if (/smoke weed/i.test(message.text)) {
-      this.gh.likeMessage(this.groupID, message.id)
+      this.gh.likeMessage(this.groupID, message.id);
       this.gh.postMessage('everyday');
     }
 
     if (/when.*\?/i.test(message.text)) {
-      this.gh.likeMessage(this.groupID, message.id)
+      this.gh.likeMessage(this.groupID, message.id);
       this.gh.postMessage('4:20');
     }
 
     if (/alcoholi.*\?/i.test(message.text)) {
-      this.gh.likeMessage(this.groupID, message.id)
+      this.gh.likeMessage(this.groupID, message.id);
       this.postTotals();
+    }
+
+    if (/dad/i.test(message.text)) {
+      this.gh.likeMessage(this.groupID, message.id);
+      this.sendProudDadMessage(message.user_id, message.name);
     }
 
     let beerModifier = 0;
@@ -175,7 +198,7 @@ export default class Bot {
       } else {
         updateMessage = `Subtracted ${Math.abs(beerModifier)} beer${beerModifier == -1 ? '' : 's'}.`;
       }
-      updateMessage = updateMessage + `${userName}'s new count: ${userTotal} Group total: ${groupTotal}`
+      updateMessage = updateMessage + ` ${userName}'s new count: ${userTotal} Group total: ${groupTotal}`
 
       this.gh.postMessage(updateMessage);
 
@@ -219,5 +242,40 @@ export default class Bot {
     } finally {
       client.release();
     }
+  }
+
+  async sonMessage(sonID: string, sonName: string, dadBotID: string) {
+    const client = await this.pg.connect();
+
+    const createTableCommand = 'CREATE TABLE IF NOT EXISTS dad (user_id text, count int)';
+    await client.query(createTableCommand);
+    
+    // Retrieve dad & insert row if it doesn't exist
+    const selectGroupCommand = `SELECT count FROM dad WHERE user_id = '${sonID}'`;
+    const currentCountRes = await client.query(selectGroupCommand);
+    
+    // Check if row exists
+    let currentCount;
+    if (currentCountRes.rows.length === 0) {
+      currentCount = 1;
+      const insertRowCommand = `INSERT INTO dad VALUES ('${sonID}', 0)`;
+      await client.query(insertRowCommand);
+    } else {
+      currentCount = currentCountRes.rows[0].count;
+    }
+
+    // Update count
+    const updateUserTotal = `UPDATE dad SET count = count + ${1} WHERE user_id = '${sonID}'`;
+    await client.query(updateUserTotal);
+
+    if (currentCount % 5 === 0)
+      await this.sendProudDadMessage(sonID, sonName);
+  }
+
+  async sendProudDadMessage(sonID: string, sonName: string) {
+    const attachments: Attachment[] = [{ loci: [], type: 'mentions', user_ids: [] }];
+    attachments[0].loci.push([0, 1]);
+    attachments[0].user_ids.push(sonID);
+    this.gh.postMessage(`Hey ${sonName}, just wanted to let you know that I'm proud of you.\nLove, dad`, attachments)
   }
 }
