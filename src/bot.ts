@@ -268,9 +268,7 @@ export default class Bot {
     const updateUserTotal = `UPDATE dad SET count = count + ${1} WHERE user_id = '${sonID}'`;
     await client.query(updateUserTotal);
 
-    console.log(currentCount);
-    console.log(currentCount % 5 === 0)
-    if (currentCount % 5 === 0)
+    if (currentCount % 17 === 0)
       await this.sendProudDadMessage(sonID, sonName);
   }
 
