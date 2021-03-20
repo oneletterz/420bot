@@ -97,7 +97,11 @@ export default class Bot {
 
     if (/dad/i.test(message.text)) {
       this.gh.likeMessage(this.groupID, message.id);
-      this.sendProudDadMessage(message.user_id, message.name);
+      this.sendProudDadMessage(userID, message.name);
+    }
+
+    if (userID == this.sonID && this.dadBotID) {
+      this.sonMessage(message.user_id, message.name, this.dadBotID);
     }
 
     let beerModifier = 0;
