@@ -105,7 +105,7 @@ export default class Bot {
     }
 
     let beerModifier = 0;
-    const beerMatch = /([+-])\s*(\d+).*beer/i.exec(text);
+    const beerMatch = /([+-])\s*(\d+).*(beer|brew|shot|booze|drink|cocktail|nip|mead)/i.exec(text);
     if (beerMatch && beerMatch.length >= 2) {
       const beerAdd = beerMatch[1] === '+';
       beerModifier = parseInt(beerMatch[2], 10) * (beerAdd ? 1 : -1);
