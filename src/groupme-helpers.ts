@@ -16,13 +16,13 @@ export default class GroupmeHelper {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async postMessage(message: string, attachments: any = null) {
+  async postMessage(message: string, attachments: any = null, botID = this.botID) {
     await GroupmeHelper.timeout(900);
 
-    console.log(`sending ${message} to ${this.botID} with attachments: ${JSON.stringify(attachments)}`);
+    console.log(`sending ${message} to ${botID} with attachments: ${JSON.stringify(attachments)}`);
 
     const body: any = {
-      bot_id: this.botID,
+      bot_id: botID,
       text: message,
       attachments,
     };

@@ -268,6 +268,8 @@ export default class Bot {
     const updateUserTotal = `UPDATE dad SET count = count + ${1} WHERE user_id = '${sonID}'`;
     await client.query(updateUserTotal);
 
+    console.log(currentCount);
+    console.log(currentCount % 5 === 0)
     if (currentCount % 5 === 0)
       await this.sendProudDadMessage(sonID, sonName);
   }
@@ -276,6 +278,7 @@ export default class Bot {
     const attachments: Attachment[] = [{ loci: [], type: 'mentions', user_ids: [] }];
     attachments[0].loci.push([0, 1]);
     attachments[0].user_ids.push(sonID);
-    this.gh.postMessage(`Hey ${sonName}, just wanted to let you know that I'm proud of you.\nLove, dad`, attachments)
+    const message = `Hey ${sonName}, just wanted to let you know that I'm proud of you.\nLove, dad`;
+    this.gh.postMessage(message, attachments, this.dadBotID);
   }
 }
