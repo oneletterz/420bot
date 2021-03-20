@@ -40,7 +40,7 @@
      inkscape:current-layer="svg311" />
   <g
      id="g409"
-     transform="matrix(2.25,0,0,2.25,-221.9125,-206.90151)">
+     transform="matrix(2.7,0,0,2.7,-362.74637,-341.74585)">
     <g
        id="#221821ff">
       <path
@@ -430,4 +430,10 @@
          id="path308" />
     </g>
   </g>
+  <circle
+     style="fill:none;stroke:#000000;stroke-width:0.765346"
+     id="path935"
+     cx="500"
+     cy="500"
+     r="499.61734" />
 </svg>
