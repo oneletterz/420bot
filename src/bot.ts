@@ -72,7 +72,7 @@ export default class Bot {
     
     if (message.sender_type != 'user' || !message.text) {
       response.writeHead(200);
-      response.end();
+      return response.end();
     }
 
     const userName = message.name.replace(/'/g, '');
