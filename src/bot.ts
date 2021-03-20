@@ -276,7 +276,7 @@ export default class Bot {
 
   async sendProudDadMessage(sonID: string, sonName: string) {
     const attachments: Attachment[] = [{ loci: [], type: 'mentions', user_ids: [] }];
-    attachments[0].loci.push([0, 1]);
+    attachments[0].loci.push([4, sonName.length]);
     attachments[0].user_ids.push(sonID);
     const message = `Hey ${sonName}, just wanted to let you know that I'm proud of you.\nLove, dad`;
     this.gh.postMessage(message, attachments, this.dadBotID);
