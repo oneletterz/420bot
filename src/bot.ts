@@ -105,7 +105,7 @@ export default class Bot {
     }
 
     let beerModifier = 0;
-    const beerMatch = /([+-])\s*(\d+).*(beer|brew|shot|booze|drink|cocktail|nip|mead|beverage)/i.exec(text);
+    const beerMatch = /([+-])\s*(\d+).*(beer|brew|shot|booze|drink|cocktail|nip|mead|beverage|wine|glass|pint|spiked|seltzer|cold one|ale|ipa|stout|cup|mug|cider|can|tankard|mixed|g&t|gin|vodka|rum|whisk|spirit|brandy|tequila|sake|cognac|absinthe|bourbon|port|scotch|iso|everclear|red|white|sangria|rose|pale|pilsner|lager|amber|porter|pinot|cabernet|merlot|chard|reisling|sparkling|prosecco|champagne|sherro|muscat|vermouth|hooch|liqueur|bailey|fireball|jager|patron|tripel)/i.exec(text);
     if (beerMatch && beerMatch.length >= 2) {
       const beerAdd = beerMatch[1] === '+';
       beerModifier = parseInt(beerMatch[2], 10) * (beerAdd ? 1 : -1);
